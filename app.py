@@ -36,7 +36,7 @@ with st.form("Birinchi formamiz"):
    fish = st.text_input("F.I.SH", placeholder="Misol: Ulug'murodov Shoh Abbos Baxodir o'g'li", help='Bu maydonda FISH kiritiladi')
 
    # Maqola matnini kiritish
-   maqola = st.text_input("Maqola mavzuingiz", placeholder="Misol: Ma'lumotlar xavfsizligini oshirishda blockchayn texnologiyalarning o'rni", max_chars=20, help="Bu qismda maqola mavzusi lo'nda kiritilishi kerak")
+   maqola = st.text_input("Maqola mavzuingiz", placeholder="Misol: Ma'lumotlar xavfsizligini oshirishda blockchayn texnologiyalarning o'rni", max_chars=500, help="Bu qismda maqola mavzusi lo'nda kiritilishi kerak")
 
    # Sho'bani tanlash
    shuba = st.selectbox(
