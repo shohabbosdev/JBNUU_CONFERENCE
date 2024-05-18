@@ -64,10 +64,10 @@ async def main():
                     certificate_link = exact_match["Sertifikat manzili"]
                     sertifikat_vaqt_utc = datetime.strptime(exact_match["Sertifikat olingan vaqt"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
                     sertifikat_vaqt = sertifikat_vaqt_utc.astimezone(pytz.timezone('Asia/Tashkent'))
-                    st.warning(f"Siz ro'yxatdan o'tgansiz! Pastda siz olgan sertifikat nusxasi mavjud. Sertifikat olgan sana: {sertifikat_vaqt.strftime('%d-%B %Y-yil %H:%M:%S')}", icon='⚠️')
+                    st.warning(f"Siz ro'yxatdan o'tgansiz! Pastda siz olgan sertifikat nusxasi mavjud. Sertifikat olgan sana: {sertifikat_vaqt.strftime('%Y-%m-%d %H:%M:%S')}", icon='⚠️')
                     st.markdown(f"[{fish}ning sertifikat fayli]({certificate_link})")
                 else:
-                    sertifikat_vaqt = datetime.now(pytz.timezone('Asia/Tashkent')).strftime("%d-%B %Y-yil %H:%M:%S")
+                    sertifikat_vaqt = datetime.now(pytz.timezone('Asia/Tashkent')).strftime("%Y-%m-%d %H:%M:%S")
                     certificate_link = await make_certificates(fish, maqola)
                     st.success("Ma'lumotlar muvaffaqiyatli saqlandi", icon='💾')
                     existing_data.append({
