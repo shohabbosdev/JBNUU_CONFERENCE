@@ -25,7 +25,7 @@ async def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    with st.form("Birinchi formamiz"):
+    with st.form("Birinchi formamiz", clear_on_submit=True):
         fish = st.text_input("F.I.SH", placeholder="Misol: Ulug'murodov Shoh Abbos Baxodir o'g'li", help='Bu maydonda FISH kiritiladi')
         maqola = st.text_input("Maqola mavzuingiz", placeholder="Misol: Ma'lumotlar xavfsizligini oshirishda blockchayn texnologiyalarning o'rni", max_chars=500, help="Bu qismda maqola mavzusi lo'nda kiritilishi kerak")
         shuba = st.selectbox(
