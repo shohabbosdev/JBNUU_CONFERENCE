@@ -1,6 +1,9 @@
-from PIL import Image, ImageFont, ImageDraw
-import os
+import aiohttp
 import re
+import asyncio
+from io import BytesIO
+from PIL import Image, ImageFont, ImageDraw
+
 
 # Telefon raqam uchun regex
 phone_regex = r'^\+998\d{9}$'
@@ -8,6 +11,7 @@ phone_regex = r'^\+998\d{9}$'
 # Email uchun regex
 email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 
+#Telefon raqam bilan email, fish qatorlari to'liq kiritilganligi tekshirilayabdi
 def validate_input(fish, email, maqola, phone):
     if fish == "" or email == "" or maqola == "":
         return False, "Iltimos barcha maydonlar bo'sh bo'lmasligini ta'minlang!!"
@@ -17,6 +21,7 @@ def validate_input(fish, email, maqola, phone):
         return False, "Email manzil noto'g'ri formatda kiritildi. Iltimos, to'g'ri formatda kiriting."
     else:
         return True, None
+
 
 # Global Variables
 FONT_FILE_1 = ImageFont.truetype(r'fonts/Times New Roman Bold.ttf', 30)
@@ -29,7 +34,22 @@ MAX_WIDTH = WIDTH - 80  # Ikkinchi matn uchun maksimal eni
 MAX_WORDS_PER_LINE = 8  # Har bir qatorda maksimal so'z soni
 OUTPUT_DIR = "out"
 
-def make_certificates(name, second_text):
+#Rasmni linki hosil qilinmoqda
+async def photo_link(photo_bytes):
+    form = aiohttp.FormData()
+    form.add_field(
+        name='file',
+        value=photo_bytes,
+    )
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post('https://telegra.ph/upload', data=form) as response:
+            img_src = await response.json()
+            link = 'https://telegra.ph/' + img_src[0]["src"]
+            return link
+
+#Sertifikat yasash qismi
+async def make_certificates(name, second_text):
     template = TEMPLATE_IMAGE.copy()
     draw = ImageDraw.Draw(template)
 
@@ -61,8 +81,10 @@ def make_certificates(name, second_text):
         draw.text(((WIDTH - text_width_2) / 2 - 40, y), line, fill=FONT_COLOR_2, font=FONT_FILE_2)
         y += text_height_2 + 5  # Qatorlar orasidagi masofani oshirish
 
-    # Sertifikatlarni boshqa katalogga saqlash
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+    # Sertifikatni BytesIO obyektiga saqlash
+    image_bytes = BytesIO()
+    template.save(image_bytes, format='PNG')
+    image_bytes.seek(0)
 
-    template.save(f"{OUTPUT_DIR}/{name}.png")
+    certificate_link = await photo_link(image_bytes)
+    return certificate_link
