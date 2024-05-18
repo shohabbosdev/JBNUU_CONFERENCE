@@ -88,6 +88,12 @@ async def main():
                     with open('out/data.json', 'w') as f:
                         json.dump(existing_data, f, indent=4)
 
+                # Barcha ro'yxatdan o'tganlar ma'lumotlarini ko'rsatish
+                with st.expander("Umumiy ro'yxat"):
+                    # Telefon raqamlarni qisqartirib olish
+                    df['Telefon raqam'] = df['Telefon raqam'].apply(lambda x: f"+998***{x[-4:]}")
+                    st.dataframe(df)
+
             else:
                 st.error(f"Xatolik nomi: {error_message}", icon='❌')
         elif taqsdiqlash and not rozilik:

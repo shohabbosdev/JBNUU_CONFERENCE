@@ -11,7 +11,7 @@ phone_regex = r'^\+998\d{9}$'
 # Email uchun regex
 email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 
-#Telefon raqam bilan email, fish qatorlari to'liq kiritilganligi tekshirilayabdi
+# Telefon raqam bilan email, fish qatorlari to'liq kiritilganligi tekshirilayabdi
 def validate_input(fish, email, maqola, phone):
     if fish == "" or email == "" or maqola == "":
         return False, "Iltimos barcha maydonlar bo'sh bo'lmasligini ta'minlang!!"
@@ -34,7 +34,7 @@ MAX_WIDTH = WIDTH - 80  # Ikkinchi matn uchun maksimal eni
 MAX_WORDS_PER_LINE = 8  # Har bir qatorda maksimal so'z soni
 OUTPUT_DIR = "out"
 
-#Rasmni linki hosil qilinmoqda
+# Rasmni linki hosil qilinmoqda
 async def photo_link(photo_bytes):
     form = aiohttp.FormData()
     form.add_field(
@@ -48,7 +48,7 @@ async def photo_link(photo_bytes):
             link = 'https://telegra.ph/' + img_src[0]["src"]
             return link
 
-#Sertifikat yasash qismi
+# Sertifikat yasash qismi
 async def make_certificates(name, second_text):
     template = TEMPLATE_IMAGE.copy()
     draw = ImageDraw.Draw(template)
@@ -66,10 +66,19 @@ async def make_certificates(name, second_text):
     lines = []
     line = []
     for word in words:
-        if len(' '.join(line + [word])) > MAX_WIDTH:
+        if len(line) < MAX_WORDS_PER_LINE:
+            line.append(word)
+        else:
             lines.append(' '.join(line))
-            line = []
-        line.append(word)
+            line = [word]
+        # Har bir qatordan keyin matnning o'lchamini tekshiramiz
+        bbox_2 = FONT_FILE_2.getbbox(' '.join(line))
+        text_width_2 = bbox_2[2] - bbox_2[0]
+        if text_width_2 > MAX_WIDTH:
+            line.pop()  # Ohirgi so'zni olib tashlash
+            lines.append(' '.join(line))
+            line = [word]
+
     if line:
         lines.append(' '.join(line))
 
