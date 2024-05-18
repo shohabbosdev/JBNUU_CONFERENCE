@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import os
 import asyncio
+from datetime import datetime
 from utils import validate_input, make_certificates
 
 async def main():
@@ -34,11 +35,11 @@ async def main():
                 "1-sho'ba. Ta'lim tizimini takomillashtirish: dolzarb tendensiyalar va strategik yo'nalishlar",
                 "2-sho'ba. Biomuhandislik va biotexnologiyalar sohasida innovatsiyalar",
                 "3-sho'ba. Raqamli iqtisod va innovatsion axborot-kommunikatsiya texnologiyalarini joriy etishning dolzarb masalalari",
-                "4-sho'ba. Psixologiya, tabiiy va aniq fanlar sohasida dolzarb tadqiqotla",
+                "4-sho'ba. Psixologiya, tabiiy va aniq fanlar sohasida dolzarb tadqiqotlar",
                 "5-sho'ba. Zamonaviy jamiyatda filologiya, tilshunoslik va didaktika",
                 "6-sho'ba. Zamonaviy gumanitar ta'limning dolzarb muammolari"
             ),
-            placeholder="O'z sho'bangizni tanlang...", help="O'z sho'bangizni tanlashda qiynalsangiz konferensiya ma'muriyatiga telefon qilishingizi mumkin: https://t.me/UzMU_JF_conf_1_2_3_shuba, https://t.me/UzMU_JF_conf_4_5_6_shuba")
+            placeholder="O'z sho'bangizni tanlang...", help="O'z sho'bangizni tanlashda qiynalsangiz konferensiya ma'muriyatiga telefon qilishingiz mumkin: https://t.me/UzMU_JF_conf_1_2_3_shuba, https://t.me/UzMU_JF_conf_4_5_6_shuba")
         ustun_1, ustun_2 = st.columns(2)
         email = ustun_1.text_input("Email manzilingizni kiriting", placeholder="Misol: ushohabbos@gmail.com", help="Elektron manzil barchangizda bo'ladi degan umiddaman")
         phone = ustun_2.text_input("Telefon raqam", placeholder="+998931189988", help="Telefon raqamni kiriting")
@@ -46,6 +47,7 @@ async def main():
         taqsdiqlash = st.form_submit_button("Sertifikat olish", type='primary')
 
         if taqsdiqlash and rozilik:
+
             is_valid, error_message = validate_input(fish, email, maqola, phone)
             if is_valid:
                 try:
@@ -53,41 +55,46 @@ async def main():
                         existing_data = json.load(f)
                 except (FileNotFoundError, json.decoder.JSONDecodeError):
                     existing_data = []
-                    df = pd.DataFrame(columns=["F.I.SH", "Maqola mavzusi", "Sho'ba", "Email", "Telefon raqam", "Sertifikat manzili"])
-                else:
-                    df = pd.DataFrame(existing_data)
 
-                existing_emails = df['Email'].tolist()
-                existing_phones = df['Telefon raqam'].tolist()
-                existing_fish   = df['F.I.SH'].tolist()
-                existing_maqola = df['Maqola mavzusi'].tolist()
-
-                if email in existing_emails or phone in existing_phones or fish in existing_fish or maqola in existing_maqola:
-                    existing_record = df[(df['Email'] == email) | (df['Telefon raqam'] == phone) | (df['F.I.SH'] == fish) | (df['Maqola mavzusi'] == maqola)]
-                    certificate_link = existing_record['Sertifikat manzili'].values[0]
-                    st.warning(f"Siz ro'yxatdan o'tgansiz! Pastda siz olgan sertifikat nusxasi mavjud", icon='⚠️')
+                # Ma'lumotlar mavjudligini tekshirish
+                exact_match = next((item for item in existing_data if item["F.I.SH"] == fish or item["Email"] == email or item["Telefon raqam"] == phone or item["Maqola mavzusi"] == maqola or item["Sho'ba"] == shuba), None)
+                
+                if exact_match:
+                    certificate_link = exact_match["Sertifikat manzili"]
+                    sertifikat_vaqt = exact_match["Sertifikat olingan vaqt"]
+                    st.warning(f"Siz ro'yxatdan o'tgansiz! Pastda siz olgan sertifikat nusxasi mavjud. Sertifikat olgan sana: {sertifikat_vaqt}", icon='⚠️')
                     st.markdown(f"[{fish}ning sertifikat fayli]({certificate_link})")
                 else:
+                    sertifikat_vaqt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     certificate_link = await make_certificates(fish, maqola)
                     st.success("Ma'lumotlar muvaffaqiyatli saqlandi", icon='💾')
-                    table = {
+                    existing_data.append({
                         "F.I.SH": fish,
                         "Maqola mavzusi": maqola,
                         "Sho'ba": shuba,
                         "Email": email,
                         "Telefon raqam": phone,
-                        "Sertifikat manzili": certificate_link
-                    }
-                    with st.expander("Siz kiritgan ma'lumotlar bilan tanishing👇👇👇"):
-                        st.table(table)
-                        st.markdown(f"[{fish}ning sertifikat fayli]({certificate_link})")
-                    
-                    existing_data.append({"F.I.SH": fish, "Maqola mavzusi": maqola, "Sho'ba": shuba, "Email": email, "Telefon raqam": phone, "Sertifikat manzili": certificate_link})
-                    df = pd.DataFrame(existing_data)
+                        "Sertifikat manzili": certificate_link,
+                        "Sertifikat olingan vaqt": sertifikat_vaqt
+                    })
                     with open('out/data.json', 'w') as f:
                         json.dump(existing_data, f, indent=4)
+                    st.markdown(f"[{fish}ning sertifikat fayli]({certificate_link})")
+
+                table = {
+                    "F.I.SH": fish,
+                    "Maqola mavzusi": maqola,
+                    "Sho'ba": shuba,
+                    "Email": email,
+                    "Telefon raqam": phone,
+                    "Sertifikat manzili": certificate_link,
+                    "Sertifikat olingan vaqt": sertifikat_vaqt
+                }
+                with st.expander("Siz kiritgan ma'lumotlar bilan tanishing👇👇👇"):
+                    st.table(table)
 
                 # Barcha ro'yxatdan o'tganlar ma'lumotlarini ko'rsatish
+                df = pd.DataFrame(existing_data)
                 with st.expander("Umumiy ro'yxat"):
                     # Telefon raqamlarni qisqartirib olish
                     df['Telefon raqam'] = df['Telefon raqam'].apply(lambda x: f"+998***{x[-4:]}")
@@ -96,7 +103,8 @@ async def main():
             else:
                 st.error(f"Xatolik nomi: {error_message}", icon='❌')
         elif taqsdiqlash and not rozilik:
-            st.error("Ma'lumotlarni to'g'ri kiritilganlgini tasdiqlang", icon='✅')
+            st.error("Ma'lumotlarni to'g'ri kiritilganligini tasdiqlang", icon='✅')
 
 if __name__ == "__main__":
     asyncio.run(main())
+
